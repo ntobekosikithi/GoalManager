@@ -1,0 +1,24 @@
+{
+  "originHash" : "5f352eac22d25b43aef573b402e8a34a68b7dc874ed791e95fc365dd8ba12b56",
+  "pins" : [
+    {
+      "identity" : "utilities",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ntobekosikithi/Utilities.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "644fcbab16e74f40c3d26a8f9b8676c904bd4c3e"
+      }
+    },
+    {
+      "identity" : "workouttracker",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ntobekosikithi/WorkoutTracker.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "a99df08e17d809a3c42ea065870b9a222f6d0219"
+      }
+    }
+  ],
+  "version" : 3
+}
