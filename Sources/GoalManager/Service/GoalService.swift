@@ -24,6 +24,7 @@ final actor GoalServiceImplementation: GoalService {
     private let dataStorage: DataStorage
     private let logger: Logger
     private let weeklyGoalsKey = "Weekly_Goals_Key"
+    private let weeklyProgressKey = "Weekly_Progress_Key"
     
     init(
         dataStorage: DataStorage = DataStorageImplementation(),
@@ -38,10 +39,8 @@ final actor GoalServiceImplementation: GoalService {
             var goals =  try await getAllGoals()
             if await isSaved(goal) {
                 goals.removeAll { $0.id == goal.id }
-                goals.append(goal)
-            }else{
-                goals.append(goal)
             }
+            goals.append(goal)
             try dataStorage.save(goals, forKey: weeklyGoalsKey)
         } catch {
             logger.error("Failed to load goals: \(error)")
@@ -77,12 +76,21 @@ final actor GoalServiceImplementation: GoalService {
     }
     
     func saveProgress(_ progress: Progress) async throws {
-        try dataStorage.save([progress], forKey: weeklyGoalsKey)
-        logger.info("Saved progress: \(progress.id)")
+        do {
+            var weeklyProgress =  try await getWeeklyProgress()
+            let isSaved = weeklyProgress.contains { $0.id == progress.id }
+            if isSaved {
+                weeklyProgress.removeAll { $0.id == progress.id }
+            }
+            weeklyProgress.append(progress)
+            try dataStorage.save(weeklyProgress, forKey: weeklyProgressKey)
+        } catch {
+            logger.error("Failed to load goals: \(error)")
+        }
     }
     
     func getWeeklyProgress() async throws -> [Progress] {
-        guard let data = try dataStorage.retrieve([Progress].self, forKey: weeklyGoalsKey) else {
+        guard let data = try dataStorage.retrieve([Progress].self, forKey: weeklyProgressKey) else {
             return []
         }
         
