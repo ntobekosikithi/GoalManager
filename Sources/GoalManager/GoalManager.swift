@@ -53,7 +53,7 @@ public final class GoalManager: ObservableObject {
         await loadGoals()
     }
     
-    private func loadGoals() async {
+    public func loadGoals() async {
         do {
             currentGoals = try await goalService.getAllGoals()
         } catch {
