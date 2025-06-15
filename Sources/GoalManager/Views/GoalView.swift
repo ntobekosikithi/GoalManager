@@ -11,6 +11,7 @@ import SwiftUI
 public struct GoalView: View {
     @StateObject private var goalManager = GoalManager()
     @State private var showingAddGoal = false
+    public init(){}
     
     public var body: some View {
         NavigationView {
