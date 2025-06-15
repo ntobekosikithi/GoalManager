@@ -21,8 +21,7 @@ public final class GoalManager: ObservableObject {
         self.logger = logger
         
         Task {
-            //await loadGoals()
-            try await self.goalService.saveGoals([])
+            await loadGoals()
         }
     }
     

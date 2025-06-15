@@ -20,7 +20,7 @@ public enum GoalType: String, CaseIterable, Codable, Sendable {
         case .totalDuration: return "clock"
         case .distance: return "location"
         case .calories: return "flame"
-        case .steps: return "footprints"
+        case .steps: return "figure.walk"
         }
     }
     

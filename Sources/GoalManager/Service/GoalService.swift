@@ -11,7 +11,6 @@ import Utilities
 @available(iOS 13.0.0, *)
 public protocol GoalService: Sendable {
     func saveGoal(_ goal: Goal) async throws
-    func saveGoals(_ goal: [Goal]) async throws
     func getAllGoals() async throws -> [Goal]
     func getGoal(by id: UUID) async throws -> Goal?
     func deleteGoal(_ id: UUID) async throws
@@ -21,10 +20,7 @@ public protocol GoalService: Sendable {
 
 @available(iOS 13.0.0, *)
 final actor GoalServiceImplementation: GoalService {
-    func saveGoals(_ goal: [Goal]) async throws {
-        dataStorage.remove(forKey: weeklyGoalsKey)
-    }
-    
+
     private var goals: [Goal] = []
     private let dataStorage: DataStorage
     private let logger: Logger
