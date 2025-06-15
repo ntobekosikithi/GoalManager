@@ -22,7 +22,7 @@ public protocol GoalService: Sendable {
 @available(iOS 13.0.0, *)
 final actor GoalServiceImplementation: GoalService {
     func saveGoals(_ goal: [Goal]) async throws {
-        try dataStorage.save([goal], forKey: weeklyGoalsKey)
+        dataStorage.remove(forKey: weeklyGoalsKey)
     }
     
     private var goals: [Goal] = []
