@@ -22,6 +22,7 @@ public final class GoalManager: ObservableObject {
         
         Task {
             await loadGoals()
+            await deleteAll()
         }
     }
     
@@ -53,8 +54,12 @@ public final class GoalManager: ObservableObject {
         await loadGoals()
     }
     
-    func deleteAll() async throws {
-        try await goalService.saveGoalS([])
+    func deleteAll() async {
+        do {
+            try await goalService.saveGoalS([])
+        } catch {
+            logger.error("Failed to load goals: \(error)")
+        }
     }
     
     public func loadGoals() async {
