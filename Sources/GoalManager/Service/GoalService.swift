@@ -32,18 +32,16 @@ final actor GoalServiceImplementation: GoalService {
         self.dataStorage = dataStorage
         self.logger = logger
     }
-    
+
     func saveGoal(_ goal: Goal) async throws {
-        let key = "goal_\(goal.id.uuidString)"
-        try dataStorage.save(goal, forKey: key)
-        await saveGoals(goal)
-        logger.info("Saved goal: \(goal.id)")
-    }
-    
-    func saveGoals(_ goal: Goal) async {
         do {
             var goals =  try await getAllGoals()
-            goals.append(goal)
+            if await isSaved(goal) {
+                goals.removeAll { $0.id == goal.id }
+                goals.append(goal)
+            }else{
+                goals.append(goal)
+            }
             try dataStorage.save(goals, forKey: weeklyGoalsKey)
         } catch {
             logger.error("Failed to load goals: \(error)")
@@ -59,18 +57,23 @@ final actor GoalServiceImplementation: GoalService {
     }
     
     func getGoal(by id: UUID) async throws -> Goal? {
-        let key = "goal_\(id.uuidString)"
-        guard let data = try dataStorage.retrieve(Goal.self, forKey: key) else {
+        do {
+            var goals =  try await getAllGoals()
+            return goals.first { $0.id == id}
+        } catch {
             return nil
         }
-        
-        return data
     }
 
     func deleteGoal(_ id: UUID) async throws {
-        let key = "goal_\(id.uuidString)"
-        dataStorage.remove(forKey: key)
-        logger.info("Deleted goal: \(id)")
+        do {
+            var goals =  try await getAllGoals()
+            goals.removeAll { $0.id == id }
+            try dataStorage.save(goals, forKey: weeklyGoalsKey)
+            logger.info("Deleted goal: \(id)")
+        } catch {
+            logger.info("Failed deleting goal: \(id)")
+        }
     }
     
     func saveProgress(_ progress: Progress) async throws {
@@ -84,5 +87,14 @@ final actor GoalServiceImplementation: GoalService {
         }
         
         return data
+    }
+    
+    func isSaved(_ goal: Goal) async -> Bool {
+        do {
+            var goals =  try await getAllGoals()
+            return goals.contains { $0.id == goal.id }
+        } catch {
+            return false
+        }
     }
 }
