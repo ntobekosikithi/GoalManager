@@ -32,13 +32,13 @@ public final class GoalManager: ObservableObject {
         await loadGoals()
     }
     
-    public func updateProgress(for goalId: UUID, value: Double) async throws {
+    public func updateProgress(for goalId: UUID, value: Double? = 0.0) async throws {
         logger.info("Updating progress for goal: \(goalId)")
         
         let progress = Progress(
             id: UUID(),
             goalId: goalId,
-            value: value,
+            value: value ?? 0.0,
             date: Date()
         )
         
@@ -51,6 +51,10 @@ public final class GoalManager: ObservableObject {
         
         try await goalService.deleteGoal(goal.id)
         await loadGoals()
+    }
+    
+    func deleteAll() async throws {
+        try await goalService.saveGoalS([])
     }
     
     public func loadGoals() async {
