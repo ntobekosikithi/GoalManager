@@ -11,7 +11,6 @@ import Utilities
 @available(iOS 13.0.0, *)
 public protocol GoalService: Sendable {
     func saveGoal(_ goal: Goal) async throws
-    func saveGoalS(_ goals: [Goal]) async throws
     func getAllGoals() async throws -> [Goal]
     func getGoal(by id: UUID) async throws -> Goal?
     func deleteGoal(_ id: UUID) async throws
@@ -43,14 +42,6 @@ final actor GoalServiceImplementation: GoalService {
             }else{
                 goals.append(goal)
             }
-            try dataStorage.save(goals, forKey: weeklyGoalsKey)
-        } catch {
-            logger.error("Failed to load goals: \(error)")
-        }
-    }
-    
-    func saveGoalS(_ goals: [Goal]) async throws {
-        do {
             try dataStorage.save(goals, forKey: weeklyGoalsKey)
         } catch {
             logger.error("Failed to load goals: \(error)")
