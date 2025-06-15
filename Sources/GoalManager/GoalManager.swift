@@ -19,10 +19,6 @@ public final class GoalManager: ObservableObject {
     ) {
         self.goalService = goalService ?? GoalServiceImplementation()
         self.logger = logger
-        
-        Task {
-            await loadGoals()
-        }
     }
     
     public func setGoal(_ goal: Goal) async throws {
@@ -61,7 +57,7 @@ public final class GoalManager: ObservableObject {
         }
     }
     
-    private func loadProgress() async {
+    public func loadProgress() async {
         do {
             weeklyProgress = try await goalService.getWeeklyProgress()
         } catch {

@@ -41,5 +41,11 @@ public struct GoalView: View {
                 AddGoalView(goalManager: goalManager)
             }
         }
+        .onAppear {
+            Task {
+                await goalManager.loadGoals()
+                await goalManager.loadProgress()
+            }
+        }
     }
 }
