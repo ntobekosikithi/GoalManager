@@ -24,6 +24,17 @@ struct GoalCard: View {
                     Text(goal.description)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Button {
+                        Task {
+                           try? await goalManager.deleteGoal(goal)
+                        }
+                    } label: {
+                        Image(systemName: "xmark.bin")
+                            .foregroundColor(.black)
+                    }
                 }
                 
                 Spacer()
