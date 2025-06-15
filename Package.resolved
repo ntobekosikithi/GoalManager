@@ -7,7 +7,7 @@
       "location" : "https://github.com/ntobekosikithi/Utilities.git",
       "state" : {
         "branch" : "main",
-        "revision" : "644fcbab16e74f40c3d26a8f9b8676c904bd4c3e"
+        "revision" : "5ebaae67ca88f8d9a839a72e5984b06fbea974b1"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/ntobekosikithi/WorkoutTracker.git",
       "state" : {
         "branch" : "main",
-        "revision" : "a99df08e17d809a3c42ea065870b9a222f6d0219"
+        "revision" : "6cbe2c15560a1a6cab08a4fee0b36809f0b74b52"
       }
     }
   ],
