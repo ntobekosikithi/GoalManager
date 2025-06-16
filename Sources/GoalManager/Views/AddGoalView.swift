@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utilities
 
 @available(iOS 15.0, *)
 struct AddGoalView: View {

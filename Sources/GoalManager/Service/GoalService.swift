@@ -14,8 +14,8 @@ public protocol GoalService: Sendable {
     func getAllGoals() async throws -> [Goal]
     func getGoal(by id: UUID) async throws -> Goal?
     func deleteGoal(_ id: UUID) async throws
-    func saveProgress(_ progress: Progress) async throws
-    func getWeeklyProgress() async throws -> [Progress]
+    func saveProgress(_ progress: GoalProgress) async throws
+    func getWeeklyProgress() async throws -> [GoalProgress]
 }
 
 @available(iOS 13.0.0, *)
@@ -76,7 +76,7 @@ final actor GoalServiceImplementation: GoalService {
         }
     }
     
-    func saveProgress(_ progress: Progress) async throws {
+    func saveProgress(_ progress: GoalProgress) async throws {
         do {
             var weeklyProgress =  try await getWeeklyProgress()
             let isSaved = weeklyProgress.contains { $0.id == progress.id }
@@ -90,8 +90,8 @@ final actor GoalServiceImplementation: GoalService {
         }
     }
     
-    func getWeeklyProgress() async throws -> [Progress] {
-        guard let data = try dataStorage.retrieve([Progress].self, forKey: weeklyProgressKey) else {
+    func getWeeklyProgress() async throws -> [GoalProgress] {
+        guard let data = try dataStorage.retrieve([GoalProgress].self, forKey: weeklyProgressKey) else {
             return []
         }
         

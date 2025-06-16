@@ -8,7 +8,7 @@ import Utilities
 @MainActor
 public final class GoalManager: ObservableObject {
     @Published public private(set) var currentGoals: [Goal] = []
-    @Published public private(set) var weeklyProgress: [Progress] = []
+    @Published public private(set) var weeklyProgress: [GoalProgress] = []
     
     private let goalService: GoalService
     private let logger: Logger
@@ -31,7 +31,7 @@ public final class GoalManager: ObservableObject {
     public func updateProgress(for goalId: UUID, value: Double? = 0.0) async throws {
         logger.info("Updating progress for goal: \(goalId)")
         
-        let progress = Progress(
+        let progress = GoalProgress(
             id: UUID(),
             goalId: goalId,
             value: value ?? 0.0,
@@ -81,5 +81,67 @@ public extension GoalManager {
     
     func isGoalCompleted(_ goal: Goal) -> Bool {
         getProgress(for: goal) >= 1.0
+    }
+}
+
+@available(iOS 13.0, *)
+public extension GoalManager {
+    func processWorkoutCompletion(_ session: WorkoutSession) async throws {
+        logger.info("Processing workout completion for goal updates")
+        
+        let relevantGoals = currentGoals.filter { goal in
+            goal.isActive && goal.appliesTo(workoutType: session.type)
+        }
+        
+        for goal in relevantGoals {
+            let progressValue: Double
+            
+            switch goal.type {
+            case .workoutCount:
+                progressValue = 1.0
+                
+            case .totalDuration:
+                progressValue = session.durationInMinutes
+                
+            case .calories:
+                progressValue = Double(session.estimatedCalories)
+                
+            case .distance:
+                if let distance = session.estimatedDistance {
+                    progressValue = distance
+                } else {
+                    continue
+                }
+                
+            case .steps:
+                if let steps = session.estimatedSteps {
+                    progressValue = Double(steps)
+                } else {
+                    continue
+                }
+                
+            case .specificWorkout:
+                // For specific workout goals, only count if types match
+                if goal.targetWorkoutType == session.type {
+                    progressValue = 1.0
+                } else {
+                    continue
+                }
+            }
+            
+            try await updateProgress(for: goal.id, value: progressValue)
+        }
+        
+        logger.info("Completed goal progress updates for \(relevantGoals.count) goals")
+    }
+    
+    func getRelevantGoals(for workoutType: WorkoutType) -> [Goal] {
+        return currentGoals.filter { goal in
+            goal.isActive && goal.appliesTo(workoutType: workoutType)
+        }
+    }
+    
+    func getSuggestedGoals(for workoutType: WorkoutType) -> [GoalType] {
+        return workoutType.applicableGoalTypes
     }
 }
