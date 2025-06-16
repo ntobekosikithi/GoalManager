@@ -89,7 +89,7 @@ struct GoalCard: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color(.systemGray6))
         .cornerRadius(14)
         .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
