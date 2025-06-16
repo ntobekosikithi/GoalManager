@@ -22,7 +22,7 @@ public final class GoalManager: ObservableObject {
     
     public init(
         goalService: GoalService? = nil,
-        logger: Logger = Logger.shared
+        logger: Logger = LoggerImplementation()
     ) {
         self.goalService = goalService ?? GoalServiceImplementation()
         self.logger = logger

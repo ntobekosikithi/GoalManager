@@ -37,7 +37,7 @@ final actor GoalServiceImplementation: GoalService {
 
     init(
         dataStorage: DataStorage = DataStorageImplementation(),
-        logger: Logger = Logger.shared
+        logger: Logger = LoggerImplementation()
     ) {
         self.dataStorage = dataStorage
         self.logger = logger
