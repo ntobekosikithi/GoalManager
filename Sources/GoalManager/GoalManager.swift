@@ -7,12 +7,19 @@ import Utilities
 @available(iOS 13.0, *)
 @MainActor
 public final class GoalManager: ObservableObject {
+    
+    // MARK: - Published Properties
+    
     @Published public private(set) var currentGoals: [Goal] = []
     @Published public private(set) var weeklyProgress: [GoalProgress] = []
-
+    
+    // MARK: - Dependencies
+    
     private let goalService: GoalService
     private let logger: Logger
-
+    
+    // MARK: - Initialization
+    
     public init(
         goalService: GoalService? = nil,
         logger: Logger = Logger.shared
@@ -20,50 +27,33 @@ public final class GoalManager: ObservableObject {
         self.goalService = goalService ?? GoalServiceImplementation()
         self.logger = logger
     }
-
+    
+    // MARK: - Goal CRUD
+    
     public func setGoal(_ goal: Goal) async throws {
         logger.info("Setting goal: \(goal.title)")
-
+        
         do {
             try await goalService.saveGoal(goal)
             await loadGoals()
         } catch {
-            logger.error("Failed to set goal: \(error)")
+            logger.error("Failed to set goal: \(goal.title), error: \(error)")
             throw error
         }
     }
-
-    public func updateProgress(for goalId: UUID, value: Double? = 0.0) async throws {
-        logger.info("Updating progress for goal: \(goalId)")
-
-        let progress = GoalProgress(
-            id: UUID(),
-            goalId: goalId,
-            value: value ?? 0.0,
-            date: Date()
-        )
-
-        do {
-            try await goalService.saveProgress(progress)
-            await loadProgress()
-        } catch {
-            logger.error("Failed to update progress: \(error)")
-            throw error
-        }
-    }
-
+    
     public func deleteGoal(_ goal: Goal) async throws {
         logger.info("Deleting goal: \(goal.id)")
-
+        
         do {
             try await goalService.deleteGoal(goal.id)
             await loadGoals()
         } catch {
-            logger.error("Failed to delete goal: \(error)")
+            logger.error("Failed to delete goal: \(goal.id), error: \(error)")
             throw error
         }
     }
-
+    
     public func loadGoals() async {
         do {
             currentGoals = try await goalService.getAllGoals()
@@ -71,7 +61,28 @@ public final class GoalManager: ObservableObject {
             logger.error("Failed to load goals: \(error)")
         }
     }
-
+    
+    // MARK: - Progress Updates
+    
+    public func updateProgress(for goalId: UUID, value: Double? = 0.0) async throws {
+        logger.info("Updating progress for goal: \(goalId)")
+        
+        let progress = GoalProgress(
+            id: UUID(),
+            goalId: goalId,
+            value: value ?? 0.0,
+            date: Date()
+        )
+        
+        do {
+            try await goalService.saveProgress(progress)
+            await loadProgress()
+        } catch {
+            logger.error("Failed to update progress for goal: \(goalId), error: \(error)")
+            throw error
+        }
+    }
+    
     public func loadProgress() async {
         do {
             weeklyProgress = try await goalService.getWeeklyProgress()
@@ -81,22 +92,24 @@ public final class GoalManager: ObservableObject {
     }
 }
 
+
 // MARK: - Goal Progress Helpers
 
 @available(iOS 13.0, *)
 public extension GoalManager {
+    
     func getProgress(for goal: Goal) -> Double {
         let total = weeklyProgress
             .filter { $0.goalId == goal.id }
             .reduce(0) { $0 + $1.value }
-
+        
         return min(total / goal.targetValue, 1.0)
     }
-
+    
     func getProgressPercentage(for goal: Goal) -> Int {
         Int(getProgress(for: goal) * 100)
     }
-
+    
     func isGoalCompleted(_ goal: Goal) -> Bool {
         getProgress(for: goal) >= 1.0
     }
@@ -106,22 +119,22 @@ public extension GoalManager {
 
 @available(iOS 13.0, *)
 public extension GoalManager {
+    
     func processWorkoutCompletion(_ session: WorkoutSession) async throws {
         logger.info("Processing workout completion for goal updates")
-
+        
         let relevantGoals = getRelevantGoals(for: session.type)
-
+        
         for goal in relevantGoals {
-            guard let progressValue = progressValue(for: goal, session: session) else {
+            guard let value = progressValue(for: goal, session: session) else {
                 continue
             }
-
-            try await updateProgress(for: goal.id, value: progressValue)
+            try await updateProgress(for: goal.id, value: value)
         }
-
-        logger.info("Completed goal progress updates for \(relevantGoals.count) goals")
+        
+        logger.info("Completed progress updates for \(relevantGoals.count) goals")
     }
-
+    
     private func progressValue(for goal: Goal, session: WorkoutSession) -> Double? {
         switch goal.type {
         case .workoutCount:
@@ -138,13 +151,14 @@ public extension GoalManager {
             return goal.targetWorkoutType == session.type ? 1.0 : nil
         }
     }
-
+    
     func getRelevantGoals(for workoutType: WorkoutType) -> [Goal] {
         currentGoals.filter { $0.isActive && $0.appliesTo(workoutType: workoutType) }
     }
-
+    
     func getSuggestedGoals(for workoutType: WorkoutType) -> [GoalType] {
         workoutType.applicableGoalTypes
     }
 }
+
 
