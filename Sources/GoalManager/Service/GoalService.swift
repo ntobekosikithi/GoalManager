@@ -8,7 +8,7 @@
 import Foundation
 import Utilities
 
-@available(iOS 13.0.0, *)
+@available(iOS 13.0, *)
 public protocol GoalService: Sendable {
     func saveGoal(_ goal: Goal) async throws
     func getAllGoals() async throws -> [Goal]
@@ -18,15 +18,17 @@ public protocol GoalService: Sendable {
     func getWeeklyProgress() async throws -> [GoalProgress]
 }
 
-@available(iOS 13.0.0, *)
+@available(iOS 13.0, *)
 final actor GoalServiceImplementation: GoalService {
 
-    private var goals: [Goal] = []
     private let dataStorage: DataStorage
     private let logger: Logger
-    private let weeklyGoalsKey = "Weekly_Goals_Key"
-    private let weeklyProgressKey = "Weekly_Progress_Key"
-    
+
+    private enum StorageKey {
+        static let weeklyGoals = "Weekly_Goals_Key"
+        static let weeklyProgress = "Weekly_Progress_Key"
+    }
+
     init(
         dataStorage: DataStorage = DataStorageImplementation(),
         logger: Logger = Logger.shared
@@ -37,73 +39,57 @@ final actor GoalServiceImplementation: GoalService {
 
     func saveGoal(_ goal: Goal) async throws {
         do {
-            var goals =  try await getAllGoals()
-            if await isSaved(goal) {
-                goals.removeAll { $0.id == goal.id }
-            }
-            goals.append(goal)
-            try dataStorage.save(goals, forKey: weeklyGoalsKey)
+            var allGoals = try await getAllGoals()
+            allGoals.removeAll { $0.id == goal.id }
+            allGoals.append(goal)
+            try dataStorage.save(allGoals, forKey: StorageKey.weeklyGoals)
+            logger.info("Saved goal: \(goal.id)")
         } catch {
-            logger.error("Failed to load goals: \(error)")
+            logger.error("Failed to save goal: \(goal.id), error: \(error)")
+            throw error
         }
     }
-    
+
     func getAllGoals() async throws -> [Goal] {
-        guard let data = try dataStorage.retrieve([Goal].self, forKey: weeklyGoalsKey) else {
-            return []
-        }
-        
-        return data
+        return try dataStorage.retrieve([Goal].self, forKey: StorageKey.weeklyGoals) ?? []
     }
-    
+
     func getGoal(by id: UUID) async throws -> Goal? {
         do {
-            let goals =  try await getAllGoals()
-            return goals.first { $0.id == id}
+            let allGoals = try await getAllGoals()
+            return allGoals.first { $0.id == id }
         } catch {
-            return nil
+            logger.error("Failed to get goal by id: \(id), error: \(error)")
+            throw error
         }
     }
 
     func deleteGoal(_ id: UUID) async throws {
         do {
-            var goals =  try await getAllGoals()
-            goals.removeAll { $0.id == id }
-            try dataStorage.save(goals, forKey: weeklyGoalsKey)
+            var allGoals = try await getAllGoals()
+            allGoals.removeAll { $0.id == id }
+            try dataStorage.save(allGoals, forKey: StorageKey.weeklyGoals)
             logger.info("Deleted goal: \(id)")
         } catch {
-            logger.info("Failed deleting goal: \(id)")
+            logger.error("Failed to delete goal: \(id), error: \(error)")
+            throw error
         }
     }
-    
+
     func saveProgress(_ progress: GoalProgress) async throws {
         do {
-            var weeklyProgress =  try await getWeeklyProgress()
-            let isSaved = weeklyProgress.contains { $0.id == progress.id }
-            if isSaved {
-                weeklyProgress.removeAll { $0.id == progress.id }
-            }
-            weeklyProgress.append(progress)
-            try dataStorage.save(weeklyProgress, forKey: weeklyProgressKey)
+            var allProgress = try await getWeeklyProgress()
+            allProgress.removeAll { $0.id == progress.id }
+            allProgress.append(progress)
+            try dataStorage.save(allProgress, forKey: StorageKey.weeklyProgress)
+            logger.info("Saved progress for goal: \(progress.goalId)")
         } catch {
-            logger.error("Failed to load goals: \(error)")
+            logger.error("Failed to save progress: \(progress.id), error: \(error)")
+            throw error
         }
     }
-    
+
     func getWeeklyProgress() async throws -> [GoalProgress] {
-        guard let data = try dataStorage.retrieve([GoalProgress].self, forKey: weeklyProgressKey) else {
-            return []
-        }
-        
-        return data
-    }
-    
-    func isSaved(_ goal: Goal) async -> Bool {
-        do {
-            let goals =  try await getAllGoals()
-            return goals.contains { $0.id == goal.id }
-        } catch {
-            return false
-        }
+        return try dataStorage.retrieve([GoalProgress].self, forKey: StorageKey.weeklyProgress) ?? []
     }
 }
