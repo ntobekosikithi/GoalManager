@@ -9,7 +9,7 @@ import SwiftUI
 import Utilities
 
 @available(iOS 15.0, *)
-struct AddGoalView: View {
+internal struct AddGoalView: View {
     @ObservedObject var goalManager: GoalManager
     @Environment(\.dismiss) private var dismiss
 

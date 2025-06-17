@@ -19,7 +19,7 @@ public protocol GoalService: Sendable {
 }
 
 @available(iOS 13.0, *)
-final actor GoalServiceImplementation: GoalService {
+internal final actor GoalServiceImplementation: GoalService {
 
     // MARK: - Storage Keys
 

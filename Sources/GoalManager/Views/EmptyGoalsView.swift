@@ -7,7 +7,7 @@
 import SwiftUI
 
 @available(iOS 14.0, *)
-struct EmptyGoalsView: View {
+internal struct EmptyGoalsView: View {
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "target")

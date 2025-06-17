@@ -9,7 +9,7 @@ import SwiftUI
 import Utilities
 
 @available(iOS 15.0, *)
-struct GoalCard: View {
+internal struct GoalCard: View {
     let goal: Goal
     @ObservedObject var goalManager: GoalManager
 
